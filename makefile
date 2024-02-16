@@ -1,14 +1,30 @@
 CC=gcc
 CFLAGS=-x c -std=c17
+
+ifeq ($(OS),Windows_NT)
+MKDIR=if not exist $(1)\NUL mkdir $(1)
+RM = del /Q /F
 LFLAGS=-lws2_32
+ifdef ComSpec
+SHELL := $(ComSpec)
+endif
+ifdef COMSPEC
+SHELL := $(COMSPEC)
+endif
+else
+MKDIR = mkdir -p
+RM = rm -rf
+endif
 
-all: http
+all: release
 
-http: 
-	$(CC) $(CFLAGS) -o2 src/main.c -o http $(LFLAGS)
+release:
+	$(call MKDIR,build)
+	$(CC) $(CFLAGS) -o2 src/main.c -o build/http $(LFLAGS)
 
 debug:
-	$(CC) $(CFLAGS) -ggdb src/main.c -o http $(LFLAGS)
+	$(call MKDIR,debug)
+	$(CC) $(CFLAGS) -ggdb src/main.c -o debug/http $(LFLAGS)
 
 clean:
-	rm -rf *.o
+	$(RM) *.o

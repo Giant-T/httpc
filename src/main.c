@@ -1,7 +1,6 @@
 #include <WS2tcpip.h>
 #include <process.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <windows.h>
 #include <winsock.h>
 
