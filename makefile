@@ -3,7 +3,7 @@ CC=gcc
 CFLAGS=-std=c17 -Wall
 
 # Files
-OBJFILES=main.o server.o
+OBJFILES=main.o server.o request.o
 
 # Commands
 ifeq ($(OS),Windows_NT)
@@ -38,6 +38,9 @@ main.o:
 
 server.o:
 	$(CC) $(CFLAGS) -c src/server.c $(LFLAGS)
+
+request.o:
+	$(CC) $(CFLAGS) -c src/request.c $(LFLAGS)
 
 clean:
 	$(RM) *.o

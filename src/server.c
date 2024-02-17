@@ -8,6 +8,8 @@
 #include <windows.h>
 #include <winsock2.h>
 
+#include "request.h"
+
 void _start_wsa(void) {
     uint16_t version_requested = MAKEWORD(2, 2);
     WSADATA wsa_data;
@@ -111,13 +113,20 @@ void _handle_client(void *arg) {
     while (1) {
         int n = recv(client->socket, buf, buflen, 0);
         if (n > 0 && buf[n - 1] == '\n') {
-            char response[] = "HTTP/1.1 200 OK\ncontent-type: text/html\n\nTEST";
+            request_t request = parse_request(buf, n);
+
+            char response[] = "HTTP/1.1 200 OK\ncontent-type: text/html\n\n";
+            size_t response_len = sizeof(response) + strlen(request.file);
+
+            strcat_s(response, response_len, request.file);
+
             send(client->socket, response, strlen(response), 0);
+            free_request(&request);
             break;
         } else if (n == SOCKET_ERROR) {
             if (WSAGetLastError() == WSAETIMEDOUT) {
                 printf("REQUEST: TIMED OUT\n");
-                char response[] = "HTTP/1.1 408 Request Timeout\nConnection: close";
+                char response[] = "HTTP/1.1 408 Request Timeout\nConnection: close\n\n";
                 send(client->socket, response, strlen(response), 0);
             } else {
                 fprintf(stderr, "ERROR: recv failed with %d\n", WSAGetLastError());
