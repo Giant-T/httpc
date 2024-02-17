@@ -1,30 +1,43 @@
+# Compiler flags
 CC=gcc
-CFLAGS=-x c -std=c17
+CFLAGS=-std=c17
 
+# Files
+OBJFILES=main.o server.o
+
+# Commands
 ifeq ($(OS),Windows_NT)
 MKDIR=if not exist $(1)\NUL mkdir $(1)
-RM = del /Q /F
+RM=del /Q /F
 LFLAGS=-lws2_32
 ifdef ComSpec
-SHELL := $(ComSpec)
+SHELL:=$(ComSpec)
 endif
 ifdef COMSPEC
-SHELL := $(COMSPEC)
+SHELL:=$(COMSPEC)
 endif
 else
-MKDIR = mkdir -p
-RM = rm -rf
+MKDIR=mkdir -p $(1)
+RM=rm -rf
 endif
 
 all: release
 
-release:
-	$(call MKDIR,build)
-	$(CC) $(CFLAGS) -o2 src/main.c -o build/http $(LFLAGS)
+release: CFLAGS += -O3
+release: http
 
-debug:
-	$(call MKDIR,debug)
-	$(CC) $(CFLAGS) -ggdb src/main.c -o debug/http $(LFLAGS)
+debug: CFLAGS += -ggdb
+debug: http
+
+http: $(OBJFILES)
+	$(call MKDIR,build)
+	$(CC) $(CFLAGS) -o build/http $(OBJFILES) $(LFLAGS)
+
+main.o:
+	$(CC) $(CFLAGS) -c src/main.c $(LFLAGS)
+
+server.o:
+	$(CC) $(CFLAGS) -c src/server.c $(LFLAGS)
 
 clean:
 	$(RM) *.o
