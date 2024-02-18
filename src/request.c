@@ -5,20 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-request_t parse_request(char* buf, uint32_t len) {
+request_t parse_request(char* buf) {
     request_t request = _initialize_request(10);
 
     char* l_context = NULL;
     char* line = strtok_s(buf, "\n", &l_context);
 
-    char* tok_context = NULL;
-    strtok_s(line, " ", &tok_context);
-    request.file = strtok_s(NULL, " ", &tok_context);
-
-    size_t size = strlen(request.file);
-    if (request.file[size - 1] == '/') {  // Replaces the file with index if url ends with "/"
-        request.file = "/index.html";
-    }
+    request.url = _parse_url(line);
 
     line = strtok_s(NULL, "\n", &l_context);
 
@@ -29,6 +22,19 @@ request_t parse_request(char* buf, uint32_t len) {
     }
 
     return request;
+}
+
+char* _parse_url(char* line) {
+    char* tok_context = NULL;
+    strtok_s(line, " ", &tok_context);
+    char* url = strtok_s(NULL, " ", &tok_context);
+
+    size_t size = strlen(url);
+    if (url[size - 1] == '/') {
+        strcat_s(url, size + 11, "index.html");
+    }
+
+    return url;
 }
 
 request_t _initialize_request(uint32_t headers_size) {
@@ -49,6 +55,7 @@ void _insert_header(request_t* request, char* header) {
 }
 
 void free_request(request_t* request) {
-    request->headers_size = request->headers_len = 0;
     free(request->headers);
+    request->headers_size = request->headers_len = 0;
+    request->headers = NULL;
 }

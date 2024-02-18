@@ -2,6 +2,7 @@
 
 #include <WS2tcpip.h>
 #include <process.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -110,15 +111,15 @@ void _handle_client(void *arg) {
 
     _print_addr(&client->addr);
 
-    while (1) {
+    while (true) {
         int n = recv(client->socket, buf, buflen, 0);
         if (n > 0 && buf[n - 1] == '\n') {
-            request_t request = parse_request(buf, n);
+            request_t request = parse_request(buf);
 
             char response[] = "HTTP/1.1 200 OK\ncontent-type: text/html\n\n";
-            size_t response_len = sizeof(response) + strlen(request.file);
+            size_t response_len = sizeof(response) + strlen(request.url);
 
-            strcat_s(response, response_len, request.file);
+            strcat_s(response, response_len, request.url);
 
             send(client->socket, response, strlen(response), 0);
             free_request(&request);
@@ -170,7 +171,7 @@ void start_server(int32_t port, uint32_t ms_timeout) {
 
     printf("LISTENING ON PORT %d\n", port);
 
-    while (1) {
+    while (true) {
         _accept_connection(&server);
     }
 }

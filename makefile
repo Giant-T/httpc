@@ -3,7 +3,7 @@ CC=gcc
 CFLAGS=-std=c17 -Wall
 
 # Files
-OBJFILES=main.o server.o request.o
+OBJFILES=build/main.o build/server.o build/request.o
 
 # Commands
 ifeq ($(OS),Windows_NT)
@@ -30,17 +30,13 @@ debug: CFLAGS += -ggdb
 debug: http clean
 
 http: $(OBJFILES)
-	$(call MKDIR,build)
-	$(CC) $(CFLAGS) -o build/http $(OBJFILES) $(LFLAGS)
+	@$(call MKDIR,build)
+	@echo Compiling executable...
+	@$(CC) $(CFLAGS) -o build/http $(OBJFILES) $(LFLAGS)
 
-main.o:
-	$(CC) $(CFLAGS) -c src/main.c $(LFLAGS)
-
-server.o:
-	$(CC) $(CFLAGS) -c src/server.c $(LFLAGS)
-
-request.o:
-	$(CC) $(CFLAGS) -c src/request.c $(LFLAGS)
+build/%.o: src/%.c
+	@echo Compiling $@
+	@$(CC) $(CFLAGS) -c $< $(LFLAGS) -o $@
 
 clean:
-	$(RM) *.o
+	@$(RM) build\*.o
