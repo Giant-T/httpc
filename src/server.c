@@ -10,6 +10,7 @@
 #include <winsock2.h>
 
 #include "request.h"
+#include "response.h"
 
 void _start_wsa(void) {
     uint16_t version_requested = MAKEWORD(2, 2);
@@ -115,13 +116,8 @@ void _handle_client(void *arg) {
         int n = recv(client->socket, buf, buflen, 0);
         if (n > 0 && buf[n - 1] == '\n') {
             request_t request = parse_request(buf);
+            respond(&request, client->socket);
 
-            char response[] = "HTTP/1.1 200 OK\ncontent-type: text/html\n\n";
-            size_t response_len = sizeof(response) + strlen(request.url);
-
-            strcat_s(response, response_len, request.url);
-
-            send(client->socket, response, strlen(response), 0);
             free_request(&request);
             break;
         } else if (n == SOCKET_ERROR) {

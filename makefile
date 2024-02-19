@@ -3,7 +3,7 @@ CC=gcc
 CFLAGS=-std=c17 -Wall
 
 # Files
-OBJFILES=build/main.o build/server.o build/request.o
+OBJFILES=build/main.o build/server.o build/request.o build/response.o
 
 # Commands
 ifeq ($(OS),Windows_NT)
@@ -26,7 +26,7 @@ all: release
 release: CFLAGS += -O3
 release: http clean
 
-debug: CFLAGS += -ggdb
+debug: CFLAGS += -Og -ggdb
 debug: http clean
 
 http: $(OBJFILES)
