@@ -3,7 +3,7 @@ CC=gcc
 CFLAGS=-std=c17 -Wall
 
 # Files
-OBJFILES=build/main.o build/server.o build/request.o build/response.o
+OBJFILES=build/main.o build/server.o build/request.o build/response.o build/print.o
 
 # Commands
 ifeq ($(OS),Windows_NT)

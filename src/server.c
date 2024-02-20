@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <winsock2.h>
 
+#include "print.h"
 #include "request.h"
 #include "response.h"
 
@@ -18,7 +19,7 @@ void _start_wsa(void) {
     int32_t err = WSAStartup(version_requested, &wsa_data);
 
     if (err != 0) {
-        fprintf(stderr, "ERROR: WSAStartup failed with error %d.\n", err);
+        print_err("WSAStartup failed with error %d.\n", err);
         exit(EXIT_FAILURE);
     }
 }
@@ -37,10 +38,7 @@ struct addrinfo *_get_addr(int32_t port) {
     int32_t err = getaddrinfo(NULL, port_buf, &hints, &res);
 
     if (err != 0) {
-        fprintf(
-            stderr, "ERROR: getaddrinfo failed with error %d\n",
-            WSAGetLastError()
-        );
+        print_err("getaddrinfo failed with error %d\n", WSAGetLastError());
         WSACleanup();
         exit(EXIT_FAILURE);
     }
@@ -52,9 +50,7 @@ SOCKET _get_socket(struct addrinfo *addr) {
     SOCKET sfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
 
     if (sfd == INVALID_SOCKET) {
-        fprintf(
-            stderr, "ERROR: socket failed with error %d\n", WSAGetLastError()
-        );
+        print_err("socket failed with error %d\n", WSAGetLastError());
         WSACleanup();
         exit(EXIT_FAILURE);
     }
@@ -66,9 +62,7 @@ void _bind_socket(SOCKET sfd, struct addrinfo *addr) {
     int32_t err = bind(sfd, addr->ai_addr, addr->ai_addrlen);
 
     if (err != 0) {
-        fprintf(
-            stderr, "ERROR: bind failed with error %d\n", WSAGetLastError()
-        );
+        print_err("bind failed with error %d\n", WSAGetLastError());
         closesocket(sfd);
         WSACleanup();
         exit(EXIT_FAILURE);
@@ -77,9 +71,7 @@ void _bind_socket(SOCKET sfd, struct addrinfo *addr) {
 
 void _listen_on_socket(SOCKET sfd) {
     if (listen(sfd, SOMAXCONN) == SOCKET_ERROR) {
-        fprintf(
-            stderr, "ERROR: listen failed with error %d\n", WSAGetLastError()
-        );
+        print_err("listen failed with error %d\n", WSAGetLastError());
         closesocket(sfd);
         WSACleanup();
         exit(EXIT_FAILURE);
@@ -107,32 +99,40 @@ void _print_addr(struct sockaddr_storage *addr) {
 void _handle_client(void *arg) {
     client_t *client = (client_t *)arg;
 
-    char buf[1024];
-    int32_t buflen = 1024;
+    int32_t buf_len = 512;
+    char buf[buf_len];
+
+    char *rq_buf = malloc(buf_len);
+    size_t rq_buf_len = buf_len;
 
     _print_addr(&client->addr);
 
     while (true) {
-        int n = recv(client->socket, buf, buflen, 0);
-        if (n > 0 && buf[n - 1] == '\n') {
-            request_t request = parse_request(buf);
-            respond(&request, client->socket);
-
-            free_request(&request);
-            break;
+        int n = recv(client->socket, buf, buf_len, 0);
+        if (n > 0) {
+            strcat_s(rq_buf, rq_buf_len, buf);
+            if (buf[n - 1] == '\n') {
+                request_t request = parse_request(rq_buf);
+                respond(&request, client->socket);
+                free_request(&request);
+                break;
+            } else {
+                rq_buf = realloc(rq_buf, rq_buf_len + buf_len);
+            }
         } else if (n == SOCKET_ERROR) {
             if (WSAGetLastError() == WSAETIMEDOUT) {
                 printf("REQUEST: TIMED OUT\n");
                 char response[] = "HTTP/1.1 408 Request Timeout\nConnection: close\n\n";
                 send(client->socket, response, strlen(response), 0);
             } else {
-                fprintf(stderr, "ERROR: recv failed with %d\n", WSAGetLastError());
+                print_err("recv failed with %d\n", WSAGetLastError());
             }
 
             break;
         }
     }
 
+    free(rq_buf);
     closesocket(client->socket);
     free(client);
 }
@@ -143,7 +143,7 @@ void _accept_connection(server_t *server) {
     client->socket = accept(server->socket, (struct sockaddr *)&client->addr, &addr_len);
 
     if (client->socket == INVALID_SOCKET) {
-        fprintf(stderr, "ERROR: accept failed with %d\n", WSAGetLastError());
+        print_err("ERROR: accept failed with %d\n", WSAGetLastError());
         free(client);
         return;
     }

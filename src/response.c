@@ -8,6 +8,8 @@
 #include <string.h>
 #include <winerror.h>
 
+#include "print.h"
+
 void respond(request_t *request, SOCKET client) {
     char *content = NULL;
     size_t content_len = get_file_content(request->url, &content);
@@ -69,10 +71,10 @@ void _handle_file_error(SOCKET client, char *url) {
     DWORD err = GetLastError();
     if (err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND) {
         respond_error(client, 404);
-        fprintf(stderr, "ERROR: file \"%s\" not found\n", url);
+        print_err("file \"%s\" not found\n", url);
     } else {
         respond_error(client, 500);
-        fprintf(stderr, "ERROR: file operation failed with %ld\n", err);
+        print_err("file operation failed with %ld\n", err);
     }
 }
 
