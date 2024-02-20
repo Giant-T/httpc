@@ -50,15 +50,21 @@ request_t _initialize_request(uint32_t headers_size) {
     return request;
 }
 
-void _insert_header(request_t* request, char* header) {
+void _insert_header(request_t* request, const char* header) {
     if (request->headers_len == request->headers_size) {
         request->headers_size *= 2;
         request->headers = realloc(request->headers, request->headers_size * sizeof(char**));
     }
-    request->headers[request->headers_len++] = header;
+    size_t header_len = strlen(header) + 1;
+    request->headers[request->headers_len] = malloc(header_len);
+    strcpy_s(request->headers[request->headers_len], header_len, header);
+    request->headers_len++;
 }
 
 void free_request(request_t* request) {
+    while (--request->headers_len) {
+        free(request->headers[request->headers_len]);
+    }
     free(request->headers);
     free(request->url);
     request->headers_size = request->headers_len = 0;

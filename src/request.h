@@ -48,6 +48,6 @@ request_t _initialize_request(uint32_t headers_size);
  * @param The request that the header belongs to.
  * @param The inserted header.
  */
-void _insert_header(request_t* request, char* header);
+void _insert_header(request_t* request, const char* header);
 
 #endif  // REQUEST_H_
