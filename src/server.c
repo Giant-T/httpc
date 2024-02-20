@@ -100,9 +100,10 @@ void _handle_client(void *arg) {
     client_t *client = (client_t *)arg;
 
     int32_t buf_len = 512;
-    char buf[buf_len];
+    char buf[512];
 
     char *rq_buf = malloc(buf_len);
+    memset(rq_buf, 0, buf_len);
     size_t rq_buf_len = buf_len;
 
     _print_addr(&client->addr);
