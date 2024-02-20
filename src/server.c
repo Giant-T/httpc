@@ -144,7 +144,7 @@ void _accept_connection(server_t *server) {
     client->socket = accept(server->socket, (struct sockaddr *)&client->addr, &addr_len);
 
     if (client->socket == INVALID_SOCKET) {
-        print_err("ERROR: accept failed with %d\n", WSAGetLastError());
+        print_err("accept failed with %d\n", WSAGetLastError());
         free(client);
         return;
     }
