@@ -12,17 +12,29 @@
 
 void respond(request_t *request, SOCKET client) {
     char *content = NULL;
-    size_t content_len = get_file_content(request->url, &content);
+    size_t content_len = _get_file_content(request->path, &content);
 
     if (content == NULL) {
-        _handle_file_error(client, request->url);
+        _handle_file_error(client, request->path);
     }
 
     // DO NOT FORGET TO UPDATE CHAR COUNT
-    char *response = malloc(43);
-    memset(response, 0, 43);
-    strcpy_s(response, 43, "HTTP/1.1 200 OK\nContent-Type: text/html\n\n");
-    size_t response_len = strlen(response);
+    char *response = malloc(17);
+    memset(response, 0, 17);
+    strcpy_s(response, 17, "HTTP/1.1 200 OK\n");
+    size_t response_len = strlen(response) + 1;
+
+    char *extension = _get_file_extension(request->path);
+    char *content_type;
+
+    if (!strcmp(extension, "html")) {
+        content_type = "Content-Type: text/html; charset=utf-8\n\n";
+    } else {
+        content_type = "Content-Type: text/plain; charset=utf-8\n\n";
+    }
+    response_len += strlen(content_type);
+    response = realloc(response, response_len);
+    strcat_s(response, response_len, content_type);
 
     response_len += content_len;
     response = realloc(response, response_len);
@@ -30,6 +42,7 @@ void respond(request_t *request, SOCKET client) {
 
     int offset = 0;
     int sent;
+    response_len = strlen(response);
     while (offset < response_len) {
         sent = send(client, response + offset, response_len - offset, 0);
         if (sent <= 0) break;
@@ -40,9 +53,9 @@ void respond(request_t *request, SOCKET client) {
     free(response);
 }
 
-size_t get_file_content(char *url, char **content) {
+size_t _get_file_content(char *path, char **content) {
     HANDLE file_handle = CreateFileA(
-        url, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL
+        path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL
     );
 
     if (file_handle == INVALID_HANDLE_VALUE) {
@@ -67,11 +80,19 @@ size_t get_file_content(char *url, char **content) {
     return file_size;
 }
 
-void _handle_file_error(SOCKET client, char *url) {
+char *_get_file_extension(char *path) {
+    size_t itr = strlen(path);
+    while (itr--) {
+        if (path[itr] == '.') break;
+    }
+    return path + itr + 1;
+}
+
+void _handle_file_error(SOCKET client, char *path) {
     DWORD err = GetLastError();
     if (err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND) {
         respond_error(client, 404);
-        print_err("file \"%s\" not found\n", url);
+        print_err("file \"%s\" not found\n", path);
     } else {
         respond_error(client, 500);
         print_err("file operation failed with %ld\n", err);

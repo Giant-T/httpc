@@ -8,7 +8,7 @@
  ***********************************************************************************/
 
 typedef struct {
-    char* url;
+    char* path;
     uint32_t headers_len;
     uint32_t headers_size;
     char** headers;
@@ -31,11 +31,11 @@ void free_request(request_t* request);
  ***********************************************************************************/
 
 /*!
- * @brief Parses the url part of the first line of the request.
+ * @brief Parses the path part of the first line of the request.
  * @param line The first line of the request.
- * @returns The url as a string.
+ * @returns The path as a string.
  */
-char* _parse_url(char* line);
+char* _parse_path(char* line);
 
 /*!
  * @brief Initializes a request struct with dynamically allocated array of headers.

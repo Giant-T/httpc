@@ -11,7 +11,7 @@ request_t parse_request(char* buf) {
     char* l_context = NULL;
     char* line = strtok_s(buf, "\n", &l_context);
 
-    request.url = _parse_url(line);
+    request.path = _parse_path(line);
 
     line = strtok_s(NULL, "\n", &l_context);
 
@@ -24,21 +24,23 @@ request_t parse_request(char* buf) {
     return request;
 }
 
-char* _parse_url(char* line) {
+char* _parse_path(char* line) {
     char* tok_context = NULL;
     strtok_s(line, " ", &tok_context);
     char* token = strtok_s(NULL, " ", &tok_context);
-    size_t size = strlen(token) + 1;
+    size_t size = strlen(token) + 2;
 
-    char* url = malloc(size);
-    strcpy_s(url, size, token);
+    char* path = malloc(size);
+    path[0] = '.';
+    path[1] = '\0';
+    strcat_s(path, size, token);
 
-    if (url[size - 2] == '/') {
-        url = realloc(url, size + 11);
-        strcat_s(url, size + 11, "index.html");
+    if (path[size - 2] == '/') {
+        path = realloc(path, size + 11);
+        strcat_s(path, size + 11, "index.html");
     }
 
-    return url;
+    return path;
 }
 
 request_t _initialize_request(uint32_t headers_size) {
@@ -46,6 +48,7 @@ request_t _initialize_request(uint32_t headers_size) {
     request.headers = malloc(headers_size * sizeof(char**));
     request.headers_len = 0;
     request.headers_size = headers_size;
+    request.path = NULL;
 
     return request;
 }
@@ -62,11 +65,11 @@ void _insert_header(request_t* request, const char* header) {
 }
 
 void free_request(request_t* request) {
-    while (--request->headers_len) {
+    while (request->headers_len--) {
         free(request->headers[request->headers_len]);
     }
     free(request->headers);
-    free(request->url);
-    request->headers_size = request->headers_len = 0;
+    free(request->path);
+    request->headers_size = request->headers_len;
     request->headers = NULL;
 }
