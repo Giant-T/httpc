@@ -13,6 +13,8 @@
 #include "request.h"
 #include "response.h"
 
+#define REQUEST_CHUNK 512
+
 void _start_wsa(void) {
     uint16_t version_requested = MAKEWORD(2, 2);
     WSADATA wsa_data;
@@ -99,34 +101,39 @@ void _print_addr(struct sockaddr_storage *addr) {
 void _handle_client(void *arg) {
     client_t *client = (client_t *)arg;
 
-    int32_t buf_len = 512;
-    char buf[512];
+    char *rq_buf = malloc(REQUEST_CHUNK);
+    size_t rq_buf_size = REQUEST_CHUNK;
+    size_t rq_buf_len = 0;
 
-    char *rq_buf = malloc(buf_len);
-    memset(rq_buf, 0, buf_len);
-    size_t rq_buf_len = buf_len;
+    memset(rq_buf, 0, rq_buf_size);
 
     _print_addr(&client->addr);
 
+    int n = 0;
     while (true) {
-        int n = recv(client->socket, buf, buf_len, 0);
+        n = recv(client->socket, rq_buf + n, REQUEST_CHUNK, 0);
         if (n > 0) {
-            strcat_s(rq_buf, rq_buf_len, buf);
-            if (buf[n - 1] == '\n') {
+            rq_buf_len += n;
+            printf("%s\n", rq_buf);
+            if (rq_buf[rq_buf_len - 1] == '\n') {
                 request_t request = parse_request(rq_buf);
                 respond(&request, client->socket);
                 free_request(&request);
                 break;
-            } else {
-                rq_buf = realloc(rq_buf, rq_buf_len + buf_len);
+            } else if (rq_buf_size == rq_buf_len) {
+                rq_buf_size += REQUEST_CHUNK;
+                rq_buf = realloc(rq_buf, rq_buf_size);
             }
-        } else if (n == SOCKET_ERROR) {
-            if (WSAGetLastError() == WSAETIMEDOUT) {
-                printf("REQUEST: TIMED OUT\n");
-                char response[] = "HTTP/1.1 408 Request Timeout\nConnection: close\n\n";
-                send(client->socket, response, strlen(response), 0);
-            } else {
-                print_err("recv failed with %d\n", WSAGetLastError());
+        } else {
+            if (n == SOCKET_ERROR) {
+                int err = WSAGetLastError();
+                if (err == WSAETIMEDOUT) {
+                    printf("REQUEST: TIMED OUT\n");
+                    char response[] = "HTTP/1.1 408 Request Timeout\nConnection: close\n\n";
+                    send(client->socket, response, strlen(response), 0);
+                } else {
+                    print_err("recv failed with %d\n", err);
+                }
             }
 
             break;
@@ -149,9 +156,16 @@ void _accept_connection(server_t *server) {
         return;
     }
 
-    setsockopt(
+    int err = setsockopt(
         client->socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&server->ms_timeout, sizeof(DWORD)
     );
+
+    if (err != 0) {
+        print_err("setsockopt failed with %d\n", WSAGetLastError());
+        free(client);
+        return;
+    }
+
     _beginthread(_handle_client, 2000, (void *)client);
 }
 

@@ -1,6 +1,6 @@
 # Compiler flags
 CC=gcc
-CFLAGS=-std=c17 -Wall
+CFLAGS=-std=c17 -Wall -pedantic
 
 # Files
 OBJFILES=build/main.o build/server.o build/request.o build/response.o build/print.o
@@ -27,7 +27,7 @@ release: CFLAGS += -O3
 release: http clean
 
 debug: CFLAGS += -Og -ggdb
-debug: http clean
+debug: http
 
 http: $(OBJFILES)
 	@$(call MKDIR,build)
