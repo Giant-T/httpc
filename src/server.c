@@ -114,7 +114,6 @@ void _handle_client(void *arg) {
         n = recv(client->socket, rq_buf + n, REQUEST_CHUNK, 0);
         if (n > 0) {
             rq_buf_len += n;
-            printf("%s\n", rq_buf);
             if (rq_buf[rq_buf_len - 1] == '\n') {
                 request_t request = parse_request(rq_buf);
                 respond(&request, client->socket);
@@ -140,8 +139,8 @@ void _handle_client(void *arg) {
         }
     }
 
-    free(rq_buf);
     closesocket(client->socket);
+    free(rq_buf);
     free(client);
 }
 

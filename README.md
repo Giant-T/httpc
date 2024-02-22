@@ -5,7 +5,9 @@ Suite spirituelle de [HttPauvre](https://github.com/Giant-T/HttPauvre) qui est d
 ### TODO
  - [x] Separer en plusieurs fichiers
  - [x] Lire des fichiers (c'est quand meme pas mal pratique pour un serveur)
- - [ ] Investiguer le peak de cpu lors du rechargement de page
+ - [x] Investiguer le peak de cpu lors du rechargement de page
+        (je ne considerais pas 0 comme sortie de recv)
+ - [ ] Hashmap de headers
  - [ ] Version linux
  - [ ] Fichier de configuration
  - [ ] S'informer sur les greens threads
