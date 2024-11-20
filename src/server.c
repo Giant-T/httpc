@@ -1,30 +1,24 @@
 #include "server.h"
 
-#include <WS2tcpip.h>
-#include <process.h>
+#include <arpa/inet.h>
+#include <bits/types/struct_timeval.h>
+#include <errno.h>
+#include <netdb.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <windows.h>
-#include <winsock2.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "print.h"
 #include "request.h"
 #include "response.h"
 
 #define REQUEST_CHUNK 512
-
-void _start_wsa(void) {
-    uint16_t version_requested = MAKEWORD(2, 2);
-    WSADATA wsa_data;
-    int32_t err = WSAStartup(version_requested, &wsa_data);
-
-    if (err != 0) {
-        print_err("WSAStartup failed with error %d.\n", err);
-        exit(EXIT_FAILURE);
-    }
-}
 
 struct addrinfo *_get_addr(int32_t port) {
     struct addrinfo hints, *res;
@@ -40,9 +34,8 @@ struct addrinfo *_get_addr(int32_t port) {
     int32_t err = getaddrinfo(NULL, port_buf, &hints, &res);
 
     if (err != 0) {
-        print_err("getaddrinfo failed with error %d\n", WSAGetLastError());
-        WSACleanup();
-        exit(EXIT_FAILURE);
+        print_err("getaddrinfo failed with error %s\n", gai_strerror(err));
+        exit(1);
     }
 
     return res;
@@ -51,10 +44,9 @@ struct addrinfo *_get_addr(int32_t port) {
 SOCKET _get_socket(struct addrinfo *addr) {
     SOCKET sfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
 
-    if (sfd == INVALID_SOCKET) {
-        print_err("socket failed with error %d\n", WSAGetLastError());
-        WSACleanup();
-        exit(EXIT_FAILURE);
+    if (sfd == -1) {
+        print_err("socket failed with error %d\n", errno);
+        exit(1);
     }
 
     return sfd;
@@ -63,19 +55,17 @@ SOCKET _get_socket(struct addrinfo *addr) {
 void _bind_socket(SOCKET sfd, struct addrinfo *addr) {
     int32_t err = bind(sfd, addr->ai_addr, addr->ai_addrlen);
 
-    if (err != 0) {
-        print_err("bind failed with error %d\n", WSAGetLastError());
-        closesocket(sfd);
-        WSACleanup();
+    if (err == -1) {
+        print_err("bind failed with error %d\n", errno);
+        close(sfd);
         exit(EXIT_FAILURE);
     }
 }
 
 void _listen_on_socket(SOCKET sfd) {
-    if (listen(sfd, SOMAXCONN) == SOCKET_ERROR) {
-        print_err("listen failed with error %d\n", WSAGetLastError());
-        closesocket(sfd);
-        WSACleanup();
+    if (listen(sfd, SOMAXCONN) == -1) {
+        print_err("listen failed with error %d\n", errno);
+        close(sfd);
         exit(EXIT_FAILURE);
     }
 }
@@ -98,7 +88,7 @@ void _print_addr(struct sockaddr_storage *addr) {
     }
 }
 
-void _handle_client(void *arg) {
+void *_handle_client(void *arg) {
     client_t *client = (client_t *)arg;
 
     char *rq_buf = malloc(REQUEST_CHUNK);
@@ -124,9 +114,9 @@ void _handle_client(void *arg) {
                 rq_buf = realloc(rq_buf, rq_buf_size);
             }
         } else {
-            if (n == SOCKET_ERROR) {
-                int err = WSAGetLastError();
-                if (err == WSAETIMEDOUT) {
+            if (n == -1) {
+                int err = errno;
+                if (err == ETIMEDOUT) {
                     printf("REQUEST: TIMED OUT\n");
                     char response[] = "HTTP/1.1 408 Request Timeout\nConnection: close\n\n";
                     send(client->socket, response, strlen(response), 0);
@@ -139,42 +129,45 @@ void _handle_client(void *arg) {
         }
     }
 
-    closesocket(client->socket);
+    close(client->socket);
     free(rq_buf);
     free(client);
+    return NULL;
 }
 
 void _accept_connection(server_t *server) {
     client_t *client = malloc(sizeof(client_t));
-    int32_t addr_len = sizeof(client->addr);
+    socklen_t addr_len = sizeof(client->addr);
     client->socket = accept(server->socket, (struct sockaddr *)&client->addr, &addr_len);
 
-    if (client->socket == INVALID_SOCKET) {
-        print_err("accept failed with %d\n", WSAGetLastError());
+    if (client->socket == -1) {
+        print_err("accept failed with %d\n", errno);
         free(client);
         return;
     }
 
     int err = setsockopt(
-        client->socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&server->ms_timeout, sizeof(DWORD)
+        client->socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&server->timeout, sizeof(struct timeval)
     );
 
-    if (err != 0) {
-        print_err("setsockopt failed with %d\n", WSAGetLastError());
+    if (err == -1) {
+        print_err("setsockopt failed with %d\n", errno);
         free(client);
         return;
     }
 
-    _beginthread(_handle_client, 2000, (void *)client);
+    pthread_t thread;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_create(&thread, &attr, _handle_client, (void *)client);
 }
 
-void start_server(int32_t port, uint32_t ms_timeout) {
-    _start_wsa();
+void start_server(int32_t port, struct timeval* timeout) {
     struct addrinfo *addr = _get_addr(port);
     server_t server = {
         .socket = _get_socket(addr),
-        .ms_timeout = ms_timeout
     };
+    memcpy(&server.timeout, timeout, sizeof(struct timeval));
 
     _bind_socket(server.socket, addr);
     _listen_on_socket(server.socket);

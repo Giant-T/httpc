@@ -1,7 +1,8 @@
 #ifndef RESPONSE_H_
 #define RESPONSE_H_
 
-#include <WS2tcpip.h>
+#include <sys/socket.h>
+#include "server.h"
 #include <stdint.h>
 
 #include "request.h"

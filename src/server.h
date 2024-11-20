@@ -1,9 +1,11 @@
 #ifndef SERVER_H_
 #define SERVER_H_
 
-#include <WS2tcpip.h>
+#include <bits/types/struct_timeval.h>
+#include <sys/socket.h>
 #include <stdint.h>
-#include <winsock2.h>
+
+typedef int SOCKET;
 
 /***********************************************************************************
  * PUBLIC
@@ -16,7 +18,7 @@ typedef struct {
 
 typedef struct {
     SOCKET socket;
-    uint32_t ms_timeout;
+    struct timeval timeout;
 } server_t;
 
 /*!
@@ -24,16 +26,12 @@ typedef struct {
  * @param port Port number (80 for http)
  * @param timeout Times out the connection after waiting for request.
  */
-void start_server(int32_t port, uint32_t ms_timeout);
+void start_server(int32_t port, struct timeval* timeout);
 
 /***********************************************************************************
  * PRIVATE
  ***********************************************************************************/
 
-/*!
- * @brief Initiates the use of the Winsock DLL by the process
- */
-void _start_wsa(void);
 /*!
  * @brief Gets the computer address informations.
  * @param port The port number
@@ -69,6 +67,6 @@ void _accept_connection(server_t *server);
  * @brief Handles a connection with a client (receiving request and sending a response)
  * @param arg Void pointer to a client that must be freed.
  */
-void _handle_client(void *arg);
+void *_handle_client(void *arg);
 
 #endif  // SERVER_H_

@@ -9,16 +9,16 @@ request_t parse_request(char* buf) {
     request_t request = _initialize_request(10);
 
     char* l_context = NULL;
-    char* line = strtok_s(buf, "\n", &l_context);
+    char* line = strtok_r(buf, "\n", &l_context);
 
     request.path = _parse_path(line);
 
-    line = strtok_s(NULL, "\n", &l_context);
+    line = strtok_r(NULL, "\n", &l_context);
 
     while (line != NULL && line[0] != 0xd) {
         _insert_header(&request, line);
 
-        line = strtok_s(NULL, "\n", &l_context);
+        line = strtok_r(NULL, "\n", &l_context);
     }
 
     return request;
@@ -26,18 +26,18 @@ request_t parse_request(char* buf) {
 
 char* _parse_path(char* line) {
     char* tok_context = NULL;
-    strtok_s(line, " ", &tok_context);
-    char* token = strtok_s(NULL, " ", &tok_context);
+    strtok_r(line, " ", &tok_context);
+    char* token = strtok_r(NULL, " ", &tok_context);
     size_t size = strlen(token) + 2;
 
     char* path = malloc(size);
     path[0] = '.';
     path[1] = '\0';
-    strcat_s(path, size, token);
+    strncat(path, token, size);
 
     if (path[size - 2] == '/') {
         path = realloc(path, size + 11);
-        strcat_s(path, size + 11, "index.html");
+        strncat(path, "index.html", size + 11);
     }
 
     return path;
@@ -60,7 +60,7 @@ void _insert_header(request_t* request, const char* header) {
     }
     size_t header_len = strlen(header) + 1;
     request->headers[request->headers_len] = malloc(header_len);
-    strcpy_s(request->headers[request->headers_len], header_len, header);
+    strncpy(request->headers[request->headers_len], header, header_len);
     request->headers_len++;
 }
 

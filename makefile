@@ -1,42 +1,28 @@
 # Compiler flags
-CC=gcc
-CFLAGS=-std=c17 -Wall -pedantic
+CC=clang
+CFLAGS=-Wall -pedantic
 
 # Files
 OBJFILES=build/main.o build/server.o build/request.o build/response.o build/print.o
 
-# Commands
-ifeq ($(OS),Windows_NT)
-MKDIR=if not exist $(1)\NUL mkdir $(1)
-RM=del /Q /F
-LFLAGS=-lws2_32
-ifdef ComSpec
-SHELL:=$(ComSpec)
-endif
-ifdef COMSPEC
-SHELL:=$(COMSPEC)
-endif
-else
-MKDIR=mkdir -p $(1)
-RM=rm -rf
-endif
-
 all: release
 
 release: CFLAGS += -O3
-release: http clean
+release: http
 
 debug: CFLAGS += -Og -ggdb
 debug: http
 
 http: $(OBJFILES)
-	@$(call MKDIR,build)
+	@mkdir -p build
 	@echo Compiling executable...
-	@$(CC) $(CFLAGS) -o build/http $(OBJFILES) $(LFLAGS)
+	@$(CC) $(CFLAGS) -o build/http $(OBJFILES)
 
 build/%.o: src/%.c
-	@echo Compiling $@
-	@$(CC) $(CFLAGS) -c $< $(LFLAGS) -o $@
+	@echo Compiling $@...
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	@$(RM) build\*.o
+	@rm -f build/*.o
+
+.PHONY: http clean

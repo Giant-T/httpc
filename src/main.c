@@ -1,12 +1,9 @@
-#include <WS2tcpip.h>
-#include <process.h>
-#include <windows.h>
-#include <winsock.h>
-
+#include <bits/types/struct_timeval.h>
 #include "server.h"
 
-#define WIN32_LEAN_AND_MEAN
-
 int main(void) {
-    start_server(80, 5000);
+    struct timeval timeout = {
+        .tv_sec = 5,
+    };
+    start_server(8080, &timeout);
 }
