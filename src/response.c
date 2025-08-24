@@ -10,13 +10,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "print.h"
+#include "log.h"
+#include "files.h"
 
-void respond(request_t *request, SOCKET client) {
-    char *content = NULL;
-    size_t content_len = _get_file_content(request->path, &content);
+void respond(Request *request, SOCKET client) {
+    File file;
+    bool worked = read_file(&file, request->path);
 
-    if (content == NULL) {
+    if (!worked) {
         _handle_file_error(client, request->path);
         return;
     }
@@ -32,6 +33,8 @@ void respond(request_t *request, SOCKET client) {
 
     if (!strcmp(extension, "html")) {
         content_type = "Content-Type: text/html; charset=utf-8\n\n";
+    } else if (!strcmp(extension, "css")) {
+        content_type = "Content-Type: text/css; charset=utf-8\n\n";
     } else {
         content_type = "Content-Type: text/plain; charset=utf-8\n\n";
     }
@@ -39,9 +42,9 @@ void respond(request_t *request, SOCKET client) {
     response = realloc(response, response_len);
     strncat(response, content_type, response_len);
 
-    response_len += content_len;
+    response_len += file.size;
     response = realloc(response, response_len);
-    strncat(response, content, response_len);
+    strncat(response, file.content, response_len);
 
     int offset = 0;
     int sent;
@@ -52,44 +55,18 @@ void respond(request_t *request, SOCKET client) {
         offset += sent;
     }
 
-    free(content);
+    free(file.content);
     free(response);
-}
-
-size_t _get_file_content(char *path, char **content) {
-    FILE *file = fopen(path, "r");
-
-    if (file == NULL) {
-        return 0;
-    }
-
-    fseek(file, 0, SEEK_END);
-    size_t file_size = ftell(file);
-    rewind(file);
-
-    *content = malloc(file_size);
-    memset(*content, 0, file_size);
-    bool did_read = fread(*content, file_size, file_size, file);
-
-    if (!did_read) {
-        fclose(file);
-        free(*content);
-        content = NULL;
-        return 0;
-    }
-
-    fclose(file);
-    return file_size;
 }
 
 void _handle_file_error(SOCKET client, char *path) {
     int err = errno;
     if (err == ENOENT) {
         respond_error(client, 404);
-        print_err("file \"%s\" not found\n", path);
+        log_err("file \"%s\" not found\n", path);
     } else {
         respond_error(client, 500);
-        print_err("file operation failed with %d\n", err);
+        log_err("file operation failed with %d\n", err);
     }
 }
 

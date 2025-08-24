@@ -14,7 +14,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "print.h"
+#include "log.h"
 #include "request.h"
 #include "response.h"
 
@@ -34,7 +34,7 @@ struct addrinfo *_get_addr(int32_t port) {
     int32_t err = getaddrinfo(NULL, port_buf, &hints, &res);
 
     if (err != 0) {
-        print_err("getaddrinfo failed with error %s\n", gai_strerror(err));
+        log_err("getaddrinfo failed with error %s\n", gai_strerror(err));
         exit(1);
     }
 
@@ -45,7 +45,7 @@ SOCKET _get_socket(struct addrinfo *addr) {
     SOCKET sfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
 
     if (sfd == -1) {
-        print_err("socket failed with error %d\n", errno);
+        log_err("socket failed with error %d\n", errno);
         exit(1);
     }
 
@@ -56,7 +56,7 @@ void _bind_socket(SOCKET sfd, struct addrinfo *addr) {
     int32_t err = bind(sfd, addr->ai_addr, addr->ai_addrlen);
 
     if (err == -1) {
-        print_err("bind failed with error %d\n", errno);
+        log_err("bind failed with error %d\n", errno);
         close(sfd);
         exit(EXIT_FAILURE);
     }
@@ -64,7 +64,7 @@ void _bind_socket(SOCKET sfd, struct addrinfo *addr) {
 
 void _listen_on_socket(SOCKET sfd) {
     if (listen(sfd, SOMAXCONN) == -1) {
-        print_err("listen failed with error %d\n", errno);
+        log_err("listen failed with error %d\n", errno);
         close(sfd);
         exit(EXIT_FAILURE);
     }
@@ -89,7 +89,7 @@ void _print_addr(struct sockaddr_storage *addr) {
 }
 
 void *_handle_client(void *arg) {
-    client_t *client = (client_t *)arg;
+    Client *client = (Client *)arg;
 
     char *rq_buf = malloc(REQUEST_CHUNK);
     size_t rq_buf_size = REQUEST_CHUNK;
@@ -105,7 +105,7 @@ void *_handle_client(void *arg) {
         if (n > 0) {
             rq_buf_len += n;
             if (rq_buf[rq_buf_len - 1] == '\n') {
-                request_t request = parse_request(rq_buf);
+                Request request = parse_request(rq_buf);
                 respond(&request, client->socket);
                 free_request(&request);
                 break;
@@ -121,7 +121,7 @@ void *_handle_client(void *arg) {
                     char response[] = "HTTP/1.1 408 Request Timeout\nConnection: close\n\n";
                     send(client->socket, response, strlen(response), 0);
                 } else {
-                    print_err("recv failed with %d\n", err);
+                    log_err("recv failed with %d\n", err);
                 }
             }
 
@@ -135,13 +135,13 @@ void *_handle_client(void *arg) {
     return NULL;
 }
 
-void _accept_connection(server_t *server) {
-    client_t *client = malloc(sizeof(client_t));
+void _accept_connection(Server *server) {
+    Client *client = malloc(sizeof(Client));
     socklen_t addr_len = sizeof(client->addr);
     client->socket = accept(server->socket, (struct sockaddr *)&client->addr, &addr_len);
 
     if (client->socket == -1) {
-        print_err("accept failed with %d\n", errno);
+        log_err("accept failed with %d\n", errno);
         free(client);
         return;
     }
@@ -151,7 +151,7 @@ void _accept_connection(server_t *server) {
     );
 
     if (err == -1) {
-        print_err("setsockopt failed with %d\n", errno);
+        log_err("setsockopt failed with %d\n", errno);
         free(client);
         return;
     }
@@ -164,7 +164,7 @@ void _accept_connection(server_t *server) {
 
 void start_server(int32_t port, struct timeval* timeout) {
     struct addrinfo *addr = _get_addr(port);
-    server_t server = {
+    Server server = {
         .socket = _get_socket(addr),
     };
     memcpy(&server.timeout, timeout, sizeof(struct timeval));

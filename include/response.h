@@ -16,7 +16,7 @@
  * @param request Pointer to the request of the client
  * @param client Socket of the client
  */
-void respond(request_t* request, SOCKET client);
+void respond(Request* request, SOCKET client);
 /*!
  * @brief Responds to the client with the specified HTTP code.
  * @param client Socket of the client
@@ -24,17 +24,6 @@ void respond(request_t* request, SOCKET client);
  */
 void respond_error(SOCKET client, uint16_t http_code);
 
-/***********************************************************************************
- * PRIVATE
- ***********************************************************************************/
-
-/*!
- * @brief Gets the content of the file;
- * @param path Path of the file.
- * @param [out] content A pointer that must be freed to the output content of a file or NULL if an error occured.
- * @returns The size in bytes of the content of the file.
- */
-size_t _get_file_content(char* path, char** content);
 /*!
  * @brief Gets the file extension part of the path.
  * @param path The file path

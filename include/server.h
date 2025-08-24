@@ -14,12 +14,12 @@ typedef int SOCKET;
 typedef struct {
     SOCKET socket;
     struct sockaddr_storage addr;
-} client_t;
+} Client;
 
 typedef struct {
     SOCKET socket;
     struct timeval timeout;
-} server_t;
+} Server;
 
 /*!
  * @brief Starts a http server on the specified address and port.
@@ -62,7 +62,7 @@ void _listen_on_socket(SOCKET sfd);
  * @brief Accepts a connection from a client and adds it to the server.
  * @param server The server that needs to accept the connection
  */
-void _accept_connection(server_t *server);
+void _accept_connection(Server *server);
 /*!
  * @brief Handles a connection with a client (receiving request and sending a response)
  * @param arg Void pointer to a client that must be freed.

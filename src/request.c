@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-request_t parse_request(char* buf) {
-    request_t request = _initialize_request(10);
+Request parse_request(char* buf) {
+    Request request = _initialize_request(10);
 
     char* l_context = NULL;
     char* line = strtok_r(buf, "\n", &l_context);
@@ -43,8 +43,8 @@ char* _parse_path(char* line) {
     return path;
 }
 
-request_t _initialize_request(uint32_t headers_size) {
-    request_t request;
+Request _initialize_request(uint32_t headers_size) {
+    Request request;
     request.headers = malloc(headers_size * sizeof(char**));
     request.headers_len = 0;
     request.headers_size = headers_size;
@@ -53,7 +53,7 @@ request_t _initialize_request(uint32_t headers_size) {
     return request;
 }
 
-void _insert_header(request_t* request, const char* header) {
+void _insert_header(Request* request, const char* header) {
     if (request->headers_len == request->headers_size) {
         request->headers_size *= 2;
         request->headers = realloc(request->headers, request->headers_size * sizeof(char**));
@@ -64,7 +64,7 @@ void _insert_header(request_t* request, const char* header) {
     request->headers_len++;
 }
 
-void free_request(request_t* request) {
+void free_request(Request* request) {
     while (request->headers_len--) {
         free(request->headers[request->headers_len]);
     }

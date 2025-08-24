@@ -13,6 +13,6 @@ if(CMAKE_EXPORT_COMPILE_COMMANDS)
     ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES})
 endif()
 
-add_executable(httpc src/main.c include/print.h src/print.c include/request.h src/request.c include/response.h src/response.c include/server.h src/server.c)
+add_executable(httpc src/main.c include/log.h src/log.c include/request.h src/request.c include/response.h src/response.c include/server.h src/server.c include/files.h src/files.c)
 
 target_include_directories(httpc PRIVATE include)
