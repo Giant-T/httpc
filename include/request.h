@@ -2,6 +2,7 @@
 #define REQUEST_H_
 
 #include <stdint.h>
+#include "header.h"
 
 /***********************************************************************************
  * PUBLIC
@@ -9,9 +10,7 @@
 
 typedef struct {
     char* path;
-    uint32_t headers_len;
-    uint32_t headers_size;
-    char** headers;
+    Headers headers;
 } Request;
 
 /*!
@@ -20,11 +19,18 @@ typedef struct {
  * @returns A request struct that needs its headers freed using the function free_request.
  */
 Request parse_request(char* buf);
+
+/*!
+ * @brief Initializes a request struct with dynamically allocated array of headers.
+ * @param headers_size The starting size of the headers array.
+ * @returns A newly constructed request with an empty array of headers.
+ */
+void request_init(Request* request, uint32_t headers_size);
 /*!
  * @brief Frees the request's headers and resets its length and size to 0.
  * @param request The pointer to the request which headers needs freeing.
  */
-void free_request(Request* request);
+void request_free(Request* request);
 
 /***********************************************************************************
  * PRIVATE
@@ -36,18 +42,5 @@ void free_request(Request* request);
  * @returns The path as a string.
  */
 char* _parse_path(char* line);
-
-/*!
- * @brief Initializes a request struct with dynamically allocated array of headers.
- * @param headers_size The starting size of the headers array.
- * @returns A newly constructed request with an empty array of headers.
- */
-Request _initialize_request(uint32_t headers_size);
-/*!
- * @brief Inserts a new header inside the request and reallocates if necessary.
- * @param The request that the header belongs to.
- * @param The inserted header.
- */
-void _insert_header(Request* request, const char* header);
 
 #endif  // REQUEST_H_

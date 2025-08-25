@@ -13,7 +13,7 @@
 #include "log.h"
 #include "files.h"
 
-void respond(Request *request, SOCKET client) {
+void respond(Request *request, Socket client) {
     File file;
     bool worked = read_file(&file, request->path);
 
@@ -28,12 +28,11 @@ void respond(Request *request, SOCKET client) {
     strncpy(response, "HTTP/1.1 200 OK\n", 17);
     size_t response_len = strlen(response) + 1;
 
-    char *extension = _get_file_extension(request->path);
     char *content_type;
 
-    if (!strcmp(extension, "html")) {
+    if (!strcmp(file.extension, "html")) {
         content_type = "Content-Type: text/html; charset=utf-8\n\n";
-    } else if (!strcmp(extension, "css")) {
+    } else if (!strcmp(file.extension, "css")) {
         content_type = "Content-Type: text/css; charset=utf-8\n\n";
     } else {
         content_type = "Content-Type: text/plain; charset=utf-8\n\n";
@@ -59,7 +58,7 @@ void respond(Request *request, SOCKET client) {
     free(response);
 }
 
-void _handle_file_error(SOCKET client, char *path) {
+void _handle_file_error(Socket client, char *path) {
     int err = errno;
     if (err == ENOENT) {
         respond_error(client, 404);
@@ -70,15 +69,7 @@ void _handle_file_error(SOCKET client, char *path) {
     }
 }
 
-char *_get_file_extension(char *path) {
-    size_t itr = strlen(path);
-    while (itr--) {
-        if (path[itr] == '.') break;
-    }
-    return path + itr + 1;
-}
-
-void respond_error(SOCKET client, uint16_t code) {
+void respond_error(Socket client, uint16_t code) {
     char *response = malloc(23);
     uint32_t response_len = sprintf(response, "HTTP/1.1 %d ERROR\n\n", code);
     send(client, response, response_len, 0);

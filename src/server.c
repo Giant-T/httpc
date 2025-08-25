@@ -41,8 +41,8 @@ struct addrinfo *_get_addr(int32_t port) {
     return res;
 }
 
-SOCKET _get_socket(struct addrinfo *addr) {
-    SOCKET sfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+Socket _get_socket(struct addrinfo *addr) {
+    Socket sfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
 
     if (sfd == -1) {
         log_err("socket failed with error %d\n", errno);
@@ -52,7 +52,7 @@ SOCKET _get_socket(struct addrinfo *addr) {
     return sfd;
 }
 
-void _bind_socket(SOCKET sfd, struct addrinfo *addr) {
+void _bind_socket(Socket sfd, struct addrinfo *addr) {
     int32_t err = bind(sfd, addr->ai_addr, addr->ai_addrlen);
 
     if (err == -1) {
@@ -62,7 +62,7 @@ void _bind_socket(SOCKET sfd, struct addrinfo *addr) {
     }
 }
 
-void _listen_on_socket(SOCKET sfd) {
+void _listen_on_socket(Socket sfd) {
     if (listen(sfd, SOMAXCONN) == -1) {
         log_err("listen failed with error %d\n", errno);
         close(sfd);
@@ -77,14 +77,14 @@ void _print_addr(struct sockaddr_storage *addr) {
             AF_INET, &((struct sockaddr_in *)addr)->sin_addr, peer_name,
             INET_ADDRSTRLEN
         );
-        printf("REQUEST: from %s\n", peer_name);
+        log_info("request from %s\n", peer_name);
     } else {
         char peer_name[INET6_ADDRSTRLEN];
         inet_ntop(
             AF_INET6, &((struct sockaddr_in6 *)addr)->sin6_addr, peer_name,
             INET_ADDRSTRLEN
         );
-        printf("REQUEST: from %s\n", peer_name);
+        log_info("request from %s\n", peer_name);
     }
 }
 
@@ -107,7 +107,7 @@ void *_handle_client(void *arg) {
             if (rq_buf[rq_buf_len - 1] == '\n') {
                 Request request = parse_request(rq_buf);
                 respond(&request, client->socket);
-                free_request(&request);
+                request_free(&request);
                 break;
             } else if (rq_buf_size == rq_buf_len) {
                 rq_buf_size += REQUEST_CHUNK;
@@ -117,7 +117,7 @@ void *_handle_client(void *arg) {
             if (n == -1) {
                 int err = errno;
                 if (err == ETIMEDOUT) {
-                    printf("REQUEST: TIMED OUT\n");
+                    log_info("request timed out\n");
                     char response[] = "HTTP/1.1 408 Request Timeout\nConnection: close\n\n";
                     send(client->socket, response, strlen(response), 0);
                 } else {
@@ -172,7 +172,7 @@ void start_server(int32_t port, struct timeval* timeout) {
     _bind_socket(server.socket, addr);
     _listen_on_socket(server.socket);
 
-    printf("LISTENING ON PORT %d\n", port);
+    log_info("listening on port %d\n", port);
 
     while (true) {
         _accept_connection(&server);

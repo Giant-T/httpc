@@ -5,7 +5,8 @@
 #include <string.h>
 
 bool read_file(File *file, const char *path) {
-    FILE* fp = fopen(path, "r");
+    FILE *fp = fopen(path, "r");
+    file->extension = get_file_extension(path);
 
     if (fp == NULL) return false;
 
@@ -21,4 +22,12 @@ bool read_file(File *file, const char *path) {
     fclose(fp);
 
     return true;
+}
+
+const char *get_file_extension(const char *path) {
+    size_t itr = strlen(path);
+    while (itr--) {
+        if (path[itr] == '.') break;
+    }
+    return path + itr + 1;
 }

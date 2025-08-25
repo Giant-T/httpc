@@ -5,19 +5,19 @@
 #include <sys/socket.h>
 #include <stdint.h>
 
-typedef int SOCKET;
+typedef int Socket;
 
 /***********************************************************************************
  * PUBLIC
  ***********************************************************************************/
 
 typedef struct {
-    SOCKET socket;
+    Socket socket;
     struct sockaddr_storage addr;
 } Client;
 
 typedef struct {
-    SOCKET socket;
+    Socket socket;
     struct timeval timeout;
 } Server;
 
@@ -46,18 +46,18 @@ void _print_addr(struct sockaddr_storage *addr);
  * @brief Gets a socket file descriptor associated with the address info.
  * @param addr Pointer to the address info struct.
  */
-SOCKET _get_socket(struct addrinfo *addr);
+Socket _get_socket(struct addrinfo *addr);
 /*!
  * @brief Binds the socket to the address
  * @param sfd The socket file descriptor
  * @param addr The address that the socket will bind to
  */
-void _bind_socket(SOCKET sfd, struct addrinfo *addr);
+void _bind_socket(Socket sfd, struct addrinfo *addr);
 /*!
  * @brief Marks the socket as a socket that can be connected to.
  * @param sfd The socket file descriptor
  */
-void _listen_on_socket(SOCKET sfd);
+void _listen_on_socket(Socket sfd);
 /*!
  * @brief Accepts a connection from a client and adds it to the server.
  * @param server The server that needs to accept the connection

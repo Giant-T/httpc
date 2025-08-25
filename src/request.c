@@ -4,9 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "header.h"
 
 Request parse_request(char* buf) {
-    Request request = _initialize_request(10);
+    Request request;
+    request_init(&request, 10);
 
     char* l_context = NULL;
     char* line = strtok_r(buf, "\n", &l_context);
@@ -16,7 +18,7 @@ Request parse_request(char* buf) {
     line = strtok_r(NULL, "\n", &l_context);
 
     while (line != NULL && line[0] != 0xd) {
-        _insert_header(&request, line);
+        headers_add(&request.headers, line);
 
         line = strtok_r(NULL, "\n", &l_context);
     }
@@ -43,33 +45,13 @@ char* _parse_path(char* line) {
     return path;
 }
 
-Request _initialize_request(uint32_t headers_size) {
-    Request request;
-    request.headers = malloc(headers_size * sizeof(char**));
-    request.headers_len = 0;
-    request.headers_size = headers_size;
-    request.path = NULL;
-
-    return request;
+void request_init(Request* request, uint32_t headers_size) {
+    headers_init(&request->headers, headers_size);
+    request->path = NULL;
 }
 
-void _insert_header(Request* request, const char* header) {
-    if (request->headers_len == request->headers_size) {
-        request->headers_size *= 2;
-        request->headers = realloc(request->headers, request->headers_size * sizeof(char**));
-    }
-    size_t header_len = strlen(header) + 1;
-    request->headers[request->headers_len] = malloc(header_len);
-    strncpy(request->headers[request->headers_len], header, header_len);
-    request->headers_len++;
-}
-
-void free_request(Request* request) {
-    while (request->headers_len--) {
-        free(request->headers[request->headers_len]);
-    }
-    free(request->headers);
+void request_free(Request* request) {
+    headers_free(&request->headers);
     free(request->path);
-    request->headers_size = request->headers_len;
-    request->headers = NULL;
+    request->path = NULL;
 }
