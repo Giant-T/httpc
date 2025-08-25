@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "header.h"
+
+#include "headers.h"
+#include "log.h"
 
 Request parse_request(char* buf) {
     Request request;
@@ -18,7 +20,13 @@ Request parse_request(char* buf) {
     line = strtok_r(NULL, "\n", &l_context);
 
     while (line != NULL && line[0] != 0xd) {
-        headers_add(&request.headers, line);
+        char** splits = split_header(line);
+        headers_add(&request.headers, splits[0], splits[1]);
+        free(splits);
+
+        char* header_str = header_to_string(&request.headers.headers[request.headers.len - 1]);
+        log_info("%s", header_str);
+        free(header_str);
 
         line = strtok_r(NULL, "\n", &l_context);
     }

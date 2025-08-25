@@ -15,7 +15,7 @@ endif()
 
 add_executable(httpc src/main.c include/log.h src/log.c include/request.h
     src/request.c include/response.h src/response.c include/server.h src/server.c
-    include/files.h src/files.c include/header.h src/header.c
+    include/files.h src/files.c include/headers.h src/headers.c
 )
 
 target_include_directories(httpc PRIVATE include)
