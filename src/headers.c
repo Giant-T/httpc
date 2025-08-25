@@ -6,17 +6,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-// TODO: Fix should use a function that works like split_once
 char** split_header(char* str) {
-    char* l_context = NULL;
-
     char** splits = malloc(2 * sizeof(char**));
 
-    char* split = strtok_r(str, ":", &l_context);
-    splits[0] = split;
-    split = strtok_r(NULL, ":", &l_context);
-    while (isspace(*split)) split++;
-    splits[1] = split;
+    splits[0] = str;
+
+    while (*str != ':') str++;
+    *str = '\0';
+
+    char* last_split = str + 1;
+    while (isspace(*last_split)) last_split++;
+    splits[1] = last_split;
 
     return splits;
 }
@@ -26,7 +26,7 @@ void header_init(Header* header, const char* key, const char* value) {
     header->key = malloc(key_len);
     strncpy(header->key, key, key_len);
 
-    size_t value_len = strlen(key) + 1;
+    size_t value_len = strlen(value) + 1;
     header->value = malloc(value_len);
     strncpy(header->value, value, value_len);
 }
