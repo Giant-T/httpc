@@ -2,10 +2,11 @@
 #define FILES_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 typedef struct {
     const char* extension;
-    char* content;
+    uint8_t* content;
     size_t size;
 } File;
 

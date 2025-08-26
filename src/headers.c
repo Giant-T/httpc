@@ -73,6 +73,15 @@ void headers_add(Headers* self, const char* key, const char* value) {
     self->len++;
 }
 
+Header* headers_get(Headers* self, const char* key) {
+    for (size_t idx = 0; idx < self->len; idx++) {
+        if (strcmp(self->headers[idx].key, key) == 0)
+            return &self->headers[idx];
+    }
+
+    return NULL;
+}
+
 char* headers_to_string(Headers* self) {
     char** lines = malloc(self->len * sizeof(char**));
 

@@ -1,5 +1,6 @@
 #include "files.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +18,7 @@ bool read_file(File *file, const char *path) {
     file->content = malloc(file->size + 1);
     memset(file->content, 0, file->size + 1);
 
-    fread(file->content, 1, file->size, fp);
+    uint64_t _ = fread(file->content, 1, file->size, fp);
 
     fclose(fp);
 

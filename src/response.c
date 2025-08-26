@@ -36,8 +36,14 @@ void respond(Request *request, Socket client) {
         headers_add(&headers, "Content-Type", "text/html; charset=utf-8");
     else if (!strcmp(file.extension, "css"))
         headers_add(&headers, "Content-Type", "text/css; charset=utf-8");
+    else if (!strcmp(file.extension, "png"))
+        headers_add(&headers, "Content-Type", "image/png");
     else
         headers_add(&headers, "Content-Type", "text/plain; charset=utf-8");
+
+    char file_size[20] = {0};
+    snprintf(file_size, 20, "%ld", file.size);
+    headers_add(&headers, "Content-Length", file_size);
 
     char* headers_str = headers_to_string(&headers);
     headers_free(&headers);
@@ -47,12 +53,13 @@ void respond(Request *request, Socket client) {
     strncat(response, headers_str, response_len);
     free(headers_str);
 
+    size_t end_idx = response_len - 1;
     response_len += file.size;
     response = realloc(response, response_len);
-    strncat(response, file.content, response_len);
+    memcpy(&response[end_idx], file.content, file.size);
+    // strncat(response, file.content, response_len);
 
     int offset = 0;
-    response_len = strlen(response);
     while (offset < response_len) {
         int sent = send(client, response + offset, response_len - offset, 0);
         if (sent <= 0) break;

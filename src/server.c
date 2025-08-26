@@ -77,14 +77,14 @@ void _print_addr(struct sockaddr_storage *addr) {
             AF_INET, &((struct sockaddr_in *)addr)->sin_addr, peer_name,
             INET_ADDRSTRLEN
         );
-        log_info("request from %s\n", peer_name);
+        log_info("Request from %s\n", peer_name);
     } else {
         char peer_name[INET6_ADDRSTRLEN];
         inet_ntop(
             AF_INET6, &((struct sockaddr_in6 *)addr)->sin6_addr, peer_name,
             INET_ADDRSTRLEN
         );
-        log_info("request from %s\n", peer_name);
+        log_info("Request from %s\n", peer_name);
     }
 }
 
@@ -117,7 +117,7 @@ void *_handle_client(void *arg) {
             if (n == -1) {
                 int err = errno;
                 if (err == ETIMEDOUT) {
-                    log_info("request timed out\n");
+                    log_info("Request timed out\n");
                     char response[] = "HTTP/1.1 408 Request Timeout\nConnection: close\n\n";
                     send(client->socket, response, strlen(response), 0);
                 } else {
@@ -175,7 +175,7 @@ void start_server(int32_t port, struct timeval* timeout) {
     _listen_on_socket(server.socket);
     freeaddrinfo(addr);
 
-    log_info("listening on port %d\n", port);
+    log_info("Listening on port %d\n", port);
 
     while (true) {
         _accept_connection(&server);
