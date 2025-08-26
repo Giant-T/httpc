@@ -160,6 +160,8 @@ void _accept_connection(Server *server) {
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_create(&thread, &attr, _handle_client, (void *)client);
+    pthread_attr_destroy(&attr);
+    pthread_detach(thread);
 }
 
 void start_server(int32_t port, struct timeval* timeout) {
@@ -171,6 +173,7 @@ void start_server(int32_t port, struct timeval* timeout) {
 
     _bind_socket(server.socket, addr);
     _listen_on_socket(server.socket);
+    freeaddrinfo(addr);
 
     log_info("listening on port %d\n", port);
 

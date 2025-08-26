@@ -24,12 +24,12 @@ Request parse_request(char* buf) {
         headers_add(&request.headers, splits[0], splits[1]);
         free(splits);
 
-        char* header_str = header_to_string(&request.headers.headers[request.headers.len - 1]);
-        log_info("%s", header_str);
-        free(header_str);
-
         line = strtok_r(NULL, "\n", &l_context);
     }
+
+    char* headers_str = headers_to_string(&request.headers);
+    log_info("Request headers: \n%s", headers_str);
+    free(headers_str);
 
     return request;
 }

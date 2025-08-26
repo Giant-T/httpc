@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "headers.h"
 #include "log.h"
 #include "files.h"
 
@@ -28,28 +29,32 @@ void respond(Request *request, Socket client) {
     strncpy(response, "HTTP/1.1 200 OK\n", 17);
     size_t response_len = strlen(response) + 1;
 
-    char *content_type;
+    Headers headers;
+    headers_init(&headers, 10);
 
-    if (!strcmp(file.extension, "html")) {
-        content_type = "Content-Type: text/html; charset=utf-8\n\n";
-    } else if (!strcmp(file.extension, "css")) {
-        content_type = "Content-Type: text/css; charset=utf-8\n\n";
-    } else {
-        content_type = "Content-Type: text/plain; charset=utf-8\n\n";
-    }
-    response_len += strlen(content_type);
+    if (!strcmp(file.extension, "html"))
+        headers_add(&headers, "Content-Type", "text/html; charset=utf-8");
+    else if (!strcmp(file.extension, "css"))
+        headers_add(&headers, "Content-Type", "text/css; charset=utf-8");
+    else
+        headers_add(&headers, "Content-Type", "text/plain; charset=utf-8");
+
+    char* headers_str = headers_to_string(&headers);
+    headers_free(&headers);
+
+    response_len += strlen(headers_str);
     response = realloc(response, response_len);
-    strncat(response, content_type, response_len);
+    strncat(response, headers_str, response_len);
+    free(headers_str);
 
     response_len += file.size;
     response = realloc(response, response_len);
     strncat(response, file.content, response_len);
 
     int offset = 0;
-    int sent;
     response_len = strlen(response);
     while (offset < response_len) {
-        sent = send(client, response + offset, response_len - offset, 0);
+        int sent = send(client, response + offset, response_len - offset, 0);
         if (sent <= 0) break;
         offset += sent;
     }

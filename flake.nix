@@ -14,6 +14,7 @@
             devShells.${system}.default = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } rec {
                 buildInputs = with pkgs; [
                     cmake
+                    valgrind
                 ];
                 shellHook = ''
                     if [ ! -d build ]; then

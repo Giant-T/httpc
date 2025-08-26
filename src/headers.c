@@ -21,54 +21,77 @@ char** split_header(char* str) {
     return splits;
 }
 
-void header_init(Header* header, const char* key, const char* value) {
+void header_init(Header* self, const char* key, const char* value) {
     size_t key_len = strlen(key) + 1;
-    header->key = malloc(key_len);
-    strncpy(header->key, key, key_len);
+    self->key = malloc(key_len);
+    strncpy(self->key, key, key_len);
 
     size_t value_len = strlen(value) + 1;
-    header->value = malloc(value_len);
-    strncpy(header->value, value, value_len);
+    self->value = malloc(value_len);
+    strncpy(self->value, value, value_len);
 }
 
-char* header_to_string(const Header* header) {
-    size_t key_len = strlen(header->key);
-    size_t value_len = strlen(header->value);
+char* header_to_string(const Header* self) {
+    size_t key_len = strlen(self->key);
+    size_t value_len = strlen(self->value);
     size_t str_len = key_len + value_len + 4;
     char* str = malloc(str_len);
     memset(str, 0, str_len);
-    sprintf(str, "%s: %s\n", header->key, header->value);
+    sprintf(str, "%s: %s\n", self->key, self->value);
     return str;
 }
 
-void header_free(Header* header) {
-    free(header->key);
-    header->key = NULL;
-    free(header->value);
-    header->value = NULL;
+void header_free(Header* self) {
+    free(self->key);
+    self->key = NULL;
+    free(self->value);
+    self->value = NULL;
 }
 
-void headers_init(Headers* headers, size_t size) {
-    headers->headers = malloc(headers->size * sizeof(Header));
-    headers->len = 0;
-    headers->size = headers->size;
+void headers_init(Headers* self, size_t size) {
+    self->headers = malloc(self->size * sizeof(Header));
+    self->len = 0;
+    self->size = self->size;
 }
 
-void headers_free(Headers* headers) {
-    while (headers->len--)
-        header_free(&headers->headers[headers->len]);
+void headers_free(Headers* self) {
+    while (self->len--)
+        header_free(&self->headers[self->len]);
 
-    free(headers->headers);
-    headers->headers = NULL;
-    headers->size = headers->len;
+    free(self->headers);
+    self->headers = NULL;
+    self->size = self->len = 0;
 }
 
-void headers_add(Headers* headers, const char* key, const char* value) {
-    if (headers->len == headers->size) {
-        headers->size *= 2;
-        headers->headers = realloc(headers->headers, headers->size * sizeof(Header));
+void headers_add(Headers* self, const char* key, const char* value) {
+    if (self->len == self->size) {
+        self->size *= 2;
+        self->headers = realloc(self->headers, self->size * sizeof(Header));
     }
 
-    header_init(&headers->headers[headers->len], key, value);
-    headers->len++;
+    header_init(&self->headers[self->len], key, value);
+    self->len++;
+}
+
+char* headers_to_string(Headers* self) {
+    char** lines = malloc(self->len * sizeof(char**));
+
+    size_t str_len = 2; // \n\0 at the end
+
+    for (size_t idx = 0; idx < self->len; idx++) {
+        lines[idx] = header_to_string(&self->headers[idx]);
+        str_len += strlen(lines[idx]);
+    }
+
+    char* str = malloc(str_len);
+    memset(str, 0, str_len);
+
+    for (size_t idx = 0; idx < self->len; idx++) {
+        strcat(str, lines[idx]);
+        free(lines[idx]);
+    }
+
+    str[str_len - 2] = '\n';
+
+    return str;
 }

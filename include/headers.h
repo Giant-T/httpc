@@ -58,8 +58,15 @@ void headers_init(Headers* headers, size_t size);
 void headers_add(Headers* headers, const char* key, const char* value);
 
 /**!
- * Frees the content of the headers struct
- * If you allocated the headers struct on the heap, you should free it yourself
+ * Returns a string representation of the headers.
+ * You are responsible for freeing the string.
+ * @param headers A pointer to the headers struct
+ */
+char* headers_to_string(Headers* headers);
+
+/**!
+ * Frees the content of the headers struct.
+ * If you allocated the headers struct on the heap, you should free it yourself.
  * @param headers A pointer to the header struct
  */
 void headers_free(Headers* headers);
