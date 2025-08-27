@@ -3,12 +3,39 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>A nice page</title>
+        <title>HTTPC</title>
         <link rel="stylesheet" href="www/css/style.css">
+        <link rel="icon" href="www/Spike.png">
     </head>
     <body>
-        <h1>This is a test page</h1>
-        <p>With a nice paragraph</p>
-        <img src="www/Spike.png" alt="Wow">
+        <main>
+            <h1>HTTPC</h1>
+            <p>
+                HTTPC is a heuristically developed C HTTP server. Reading
+                through <a href="https://beej.us/guide/bgnet/html/">Beej's Guide to Networking</a>
+                was a huge help to the socket stuff. Everything 
+                else was mostly based on vibes I picked up from the HTTP protocol and
+                a bit of late-night reading on the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP">Mozilla Developer Network</a>.
+                Beyond that, I have absolutely no idea if the threading part
+                is any good, or if it's slowly leaking memory somewhere, though
+                memory usage looks steady. It's almost definitely not secure
+                and should not be put online. Normally receiving requests over
+                IPv6 should work, but I have not tested it, so... maybe don't
+                bet your life on it.
+            </p>
+            <p>
+                As you just read, this program is far from perfect, but I'd
+                really like to make it a little better. It would be awesome to
+                configure it through a file instead of a hardcoding everything.
+                I'd also like to use a hashtable instead of a simple buffer for
+                headers. The handling of supported extensions could use a bit of
+                love so it doesn't feel so painfully hard-coded. Finally, I'd
+                really love to play around with green threads, even if that's hardly
+                related to the HTTP server itself.
+            </p>
+        </main>
+        <footer>
+            <a href="https://github.com/giant-t/httpc" target="_blank">GITHUB</a>
+        </footer>
     </body>
 </html>

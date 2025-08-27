@@ -1,6 +1,39 @@
+* {
+    box-sizing: border-box;
+}
+
 body, html {
     height: 100%;
     width: 100%;
     background: darkslategrey;
     color: azure;
+    margin: 0;
+    padding: 8px 16px;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    width: 100%;
+    max-width: 800px;
+    align-self: center;
+}
+
+main>* {
+    max-width: 100%;
+}
+
+footer {
+    align-self: center;
+}
+
+a {
+    color: lightseagreen;
+}
+
+a:visited {
+    color: darkcyan;
 }
