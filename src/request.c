@@ -41,8 +41,8 @@ char* _parse_path(char* line) {
     size_t size = strlen(token) + 2;
 
     char* path = malloc(size);
+    memset(path, 0, size);
     path[0] = '.';
-    path[1] = '\0';
     strncat(path, token, size);
 
     if (path[size - 2] == '/') {

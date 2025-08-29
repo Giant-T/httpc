@@ -11,7 +11,17 @@ typedef struct {
 } File;
 
 /**!
- * Should free file.content after use
+ * Concatenates two paths and adds '/' accordingly.
+ * You should free the concatenated string after use.
+ * @param path1 The starting path
+ * @param path2 The ending path
+ * @returns A pointer to a string containing the concatenated path
+ */
+char* concat_paths(const char* path1, const char* path2);
+
+/**!
+ * Reads the content of a file.
+ * You should free file.content after use.
  * @param file The pointer to the file struct in which we read the content
  * @param path The path of the file
  * @returns True if the file was correctly read, false otherwise
@@ -19,7 +29,7 @@ typedef struct {
 bool read_file(File* file, const char* path);
 
 /**!
- * The extension is valid for as long as the supplied string is
+ * The extension is valid for as long as the supplied string is.
  * @param path The pointer to the path of the file
  * @returns The pointer to the string containing the extension
  */
