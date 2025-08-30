@@ -9,14 +9,15 @@
 
 char* concat_paths(const char* path1, const char* path2) {
     size_t result_len = 1;
-    size_t path1_len = strlen(path1);
+    const size_t path1_len = strlen(path1);
     result_len += path1_len;
-    bool path1_ends_with_slash = path1[path1_len - 1] == '/';
+
+    const bool path1_ends_with_slash = path1[path1_len - 1] == '/';
     if (!path1_ends_with_slash) result_len++;
 
     if (path2[0] == '.') path2++;
     if (path2[0] == '/') path2++;
-    size_t path2_len = strlen(path2);
+    const size_t path2_len = strlen(path2);
     result_len += path2_len;
 
     char* result_path = malloc(result_len);

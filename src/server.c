@@ -41,7 +41,7 @@ struct addrinfo *_get_addr(int32_t port) {
     return res;
 }
 
-Socket _get_socket(struct addrinfo *addr) {
+Socket _get_socket(const struct addrinfo *addr) {
     Socket sfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
 
     if (sfd == -1) {
@@ -52,7 +52,7 @@ Socket _get_socket(struct addrinfo *addr) {
     return sfd;
 }
 
-void _bind_socket(Socket sfd, struct addrinfo *addr) {
+void _bind_socket(Socket sfd, const struct addrinfo *addr) {
     int32_t err = bind(sfd, addr->ai_addr, addr->ai_addrlen);
 
     if (err == -1) {
@@ -70,7 +70,7 @@ void _listen_on_socket(Socket sfd) {
     }
 }
 
-void _print_addr(struct sockaddr_storage *addr) {
+void _print_addr(const struct sockaddr_storage *addr) {
     if (addr->ss_family == AF_INET) {
         char peer_name[INET_ADDRSTRLEN];
         inet_ntop(
@@ -135,7 +135,7 @@ void *_handle_client(void *arg) {
     return NULL;
 }
 
-void _accept_connection(Server *server) {
+void _accept_connection(const Server *server) {
     Client *client = malloc(sizeof(Client));
     socklen_t addr_len = sizeof(client->addr);
     client->socket = accept(server->socket, (struct sockaddr *)&client->addr, &addr_len);
@@ -164,8 +164,8 @@ void _accept_connection(Server *server) {
     pthread_detach(thread);
 }
 
-void start_server(int32_t port, struct timeval* timeout) {
-    struct addrinfo *addr = _get_addr(port);
+void start_server(int32_t port, const struct timeval* timeout) {
+    const struct addrinfo *addr = _get_addr(port);
     Server server = {
         .socket = _get_socket(addr),
     };
@@ -173,7 +173,6 @@ void start_server(int32_t port, struct timeval* timeout) {
 
     _bind_socket(server.socket, addr);
     _listen_on_socket(server.socket);
-    freeaddrinfo(addr);
 
     log_info("Listening on port %d\n", port);
 

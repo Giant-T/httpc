@@ -22,19 +22,19 @@ char** split_header(char* str) {
 }
 
 void header_init(Header* self, const char* key, const char* value) {
-    size_t key_len = strlen(key) + 1;
+    const size_t key_len = strlen(key) + 1;
     self->key = malloc(key_len);
     strncpy(self->key, key, key_len);
 
-    size_t value_len = strlen(value) + 1;
+    const size_t value_len = strlen(value) + 1;
     self->value = malloc(value_len);
     strncpy(self->value, value, value_len);
 }
 
 char* header_to_string(const Header* self) {
-    size_t key_len = strlen(self->key);
-    size_t value_len = strlen(self->value);
-    size_t str_len = key_len + value_len + 4;
+    const size_t key_len = strlen(self->key);
+    const size_t value_len = strlen(self->value);
+    const size_t str_len = key_len + value_len + 4;
     char* str = malloc(str_len);
     memset(str, 0, str_len);
     sprintf(str, "%s: %s\n", self->key, self->value);

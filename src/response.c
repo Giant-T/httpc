@@ -14,7 +14,7 @@
 #include "log.h"
 #include "files.h"
 
-void respond(Request *request, Socket client) {
+void respond(const Request *request, Socket client) {
     File file;
     bool worked = read_file(&file, request->path);
 
@@ -70,7 +70,7 @@ void respond(Request *request, Socket client) {
     free(response);
 }
 
-void _handle_file_error(Socket client, char *path) {
+void _handle_file_error(Socket client, const char *path) {
     int err = errno;
     if (err == ENOENT) {
         respond_error(client, 404);

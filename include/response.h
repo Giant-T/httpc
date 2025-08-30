@@ -2,9 +2,9 @@
 #define RESPONSE_H_
 
 #include <sys/socket.h>
-#include "server.h"
 #include <stdint.h>
 
+#include "server.h"
 #include "request.h"
 
 /***********************************************************************************
@@ -16,7 +16,7 @@
  * @param request Pointer to the request of the client
  * @param client Socket of the client
  */
-void respond(Request* request, Socket client);
+void respond(const Request* request, Socket client);
 /*!
  * @brief Responds to the client with the specified HTTP code.
  * @param client Socket of the client
@@ -29,6 +29,6 @@ void respond_error(Socket client, uint16_t http_code);
  * @param client Socket of the client
  * @param path The path of the file that caused an error
  */
-void _handle_file_error(Socket client, char* path);
+void _handle_file_error(Socket client, const char* path);
 
 #endif  // RESPONSE_H_
