@@ -11,15 +11,6 @@ typedef struct {
 } File;
 
 /**!
- * Concatenates two paths and adds '/' accordingly.
- * You should free the concatenated string after use.
- * @param path1 The starting path
- * @param path2 The ending path
- * @returns A pointer to a string containing the concatenated path
- */
-char* concat_paths(const char* path1, const char* path2);
-
-/**!
  * Reads the content of a file.
  * You should free file.content after use.
  * @param file The pointer to the file struct in which we read the content
